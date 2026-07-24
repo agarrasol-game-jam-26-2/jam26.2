@@ -15,6 +15,10 @@ public class PlayerMove : MonoBehaviour
     public float acceleration = 20f;
     public float deceleration = 15f;
 
+    [Header("Colisão")]
+    public LayerMask collisionMask;
+    public float collisionCheckDistance = 0.5f;
+
     private Vector2 rawInput;
     private bool isSprintingIntent;
     private Vector2 currentVelocity;
@@ -84,11 +88,23 @@ public class PlayerMove : MonoBehaviour
         if (rawInput.magnitude > 0.1f)
         {
             Vector2 targetVelocity = moveDirection * targetSpeed;
-            currentVelocity = Vector2.Lerp(
-                rb.linearVelocity,
-                targetVelocity,
-                acceleration * Time.fixedDeltaTime
-            );
+
+            if (!IsCollidingInDirection(moveDirection))
+            {
+                currentVelocity = Vector2.Lerp(
+                    rb.linearVelocity,
+                    targetVelocity,
+                    acceleration * Time.fixedDeltaTime
+                );
+            }
+            else
+            {
+                currentVelocity = Vector2.Lerp(
+                    rb.linearVelocity,
+                    Vector2.zero,
+                    deceleration * Time.fixedDeltaTime
+                );
+            }
         }
         else
         {
@@ -106,5 +122,19 @@ public class PlayerMove : MonoBehaviour
             anim.SetFloat("Speed", rawInput.magnitude);
             anim.SetBool("IsSprinting", isSprintingIntent && rawInput.magnitude > 0.1f);
         }
+    }
+
+    private bool IsCollidingInDirection(Vector2 direction)
+    {
+        if (direction.magnitude < 0.1f) return false;
+
+        RaycastHit2D hit = Physics2D.Raycast(
+            transform.position,
+            direction.normalized,
+            collisionCheckDistance,
+            collisionMask
+        );
+
+        return hit.collider != null;
     }
 }
