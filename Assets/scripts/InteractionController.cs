@@ -1,16 +1,21 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
+using TMPro;
 using UnityEngine.UI;
 
 public class InteractionController : MonoBehaviour
 {
     [Header("Detecção")]
-    public float interactionRange = 5f;
+    public Vector2 boxSize = new Vector2(1f, 1f);
+    public float distanceInFront = 0.6f;
     public LayerMask interactableLayer;
 
+    [Header("Referências")]
+    public PlayerMove playerMove;
+
     [Header("UI")]
-    public Text interactionPromptText;
-    public CanvasGroup promptCanvasGroup;
+    public TextMeshProUGUI interactionPromptText;
+    public GameObject promptPanel;
 
     private Camera mainCamera;
     private IInteractable currentInteractable;
@@ -19,8 +24,8 @@ public class InteractionController : MonoBehaviour
     void Start()
     {
         mainCamera = Camera.main;
-        if (promptCanvasGroup != null)
-            promptCanvasGroup.alpha = 0f;
+        if (promptPanel != null)
+            promptPanel.SetActive(false);
     }
 
     void Update()
@@ -63,8 +68,8 @@ public class InteractionController : MonoBehaviour
         if (!promptVisible)
         {
             promptVisible = true;
-            if (promptCanvasGroup != null)
-                promptCanvasGroup.alpha = 1f;
+            if (promptPanel != null)
+                promptPanel.SetActive(true);
         }
 
         if (interactionPromptText != null)
@@ -76,8 +81,8 @@ public class InteractionController : MonoBehaviour
         if (promptVisible)
         {
             promptVisible = false;
-            if (promptCanvasGroup != null)
-                promptCanvasGroup.alpha = 0f;
+            if (promptPanel != null)
+                promptPanel.SetActive(false);
         }
     }
 

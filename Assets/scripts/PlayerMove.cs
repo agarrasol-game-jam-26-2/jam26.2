@@ -23,6 +23,10 @@ public class PlayerMove : MonoBehaviour
     private bool isSprintingIntent;
     private Vector2 currentVelocity;
 
+    [Header("Facing")]
+    public Vector2 facingDirection = Vector2.down;
+
+
     void Start()
     {
         Initialize();
@@ -72,6 +76,8 @@ public class PlayerMove : MonoBehaviour
 
         rawInput = new Vector2(x, y).normalized;
         isSprintingIntent = Keyboard.current.leftShiftKey.isPressed;
+
+        if(rawInput.magnitude > 0.1f) facingDirection = rawInput;
     }
 
     private void FixedUpdate()
@@ -137,4 +143,7 @@ public class PlayerMove : MonoBehaviour
 
         return hit.collider != null;
     }
+
+    
+
 }
