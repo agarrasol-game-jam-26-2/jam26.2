@@ -1,9 +1,11 @@
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.SceneManagement;
 
 public class Login : MonoBehaviour
 {
     public Button loginButton;
+    public Object targetScene;
 
     void Start()
     {
@@ -19,7 +21,14 @@ public class Login : MonoBehaviour
 
     public void LoginGame()
     {
-        // Aqui você pode adicionar a lógica de login, como autenticação do usuário.
-        Debug.Log("Login realizado com sucesso!");
+        if (targetScene == null)
+        {
+            Debug.LogError("Login: Cena não atribuída no Inspector!");
+            return;
+        }
+
+        string sceneName = targetScene.name;
+        Debug.Log("Login realizado com sucesso! Carregando cena: " + sceneName);
+        SceneManager.LoadScene(sceneName);
     }
 }
