@@ -1,7 +1,6 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
 using TMPro;
-using UnityEngine.UI;
 
 public class InteractionController : MonoBehaviour
 {
@@ -17,15 +16,17 @@ public class InteractionController : MonoBehaviour
     public TextMeshProUGUI interactionPromptText;
     public GameObject promptPanel;
 
-    private Camera mainCamera;
     private IInteractable currentInteractable;
     private bool promptVisible = false;
+    private Vector2 lastBoxCenter;
 
     void Start()
     {
-        mainCamera = Camera.main;
         if (promptPanel != null)
             promptPanel.SetActive(false);
+
+        if (playerMove == null)
+            playerMove = GetComponent<PlayerMove>();
     }
 
     void Update()
@@ -36,12 +37,29 @@ public class InteractionController : MonoBehaviour
 
     private void DetectInteractable()
     {
-        RaycastHit hit;
-        IInteractable newInteractable = null;
+        Vector2 facing = playerMove != null ? playerMove.facingDirection : Vector2.down;
+        Vector2 boxCenter = (Vector2)transform.position + facing * distanceInFront;
+        lastBoxCenter = boxCenter;
 
-        if (Physics.Raycast(mainCamera.transform.position, mainCamera.transform.forward, out hit, interactionRange, interactableLayer))
+        float angle = Mathf.Atan2(facing.y, facing.x) * Mathf.Rad2Deg;
+
+        Collider2D[] hits = Physics2D.OverlapBoxAll(boxCenter, boxSize, angle, interactableLayer);
+
+        IInteractable newInteractable = null;
+        float closestDist = float.MaxValue;
+
+        foreach (var hit in hits)
         {
-            newInteractable = hit.collider.GetComponent<IInteractable>();
+            IInteractable interactable = hit.GetComponentInParent<IInteractable>();
+            if (interactable == null) continue;
+            if (!interactable.CanInteract()) continue;
+
+            float dist = Vector2.Distance(transform.position, hit.transform.position);
+            if (dist < closestDist)
+            {
+                closestDist = dist;
+                newInteractable = interactable;
+            }
         }
 
         if (newInteractable != currentInteractable)
@@ -54,13 +72,9 @@ public class InteractionController : MonoBehaviour
     private void UpdatePromptUI()
     {
         if (currentInteractable != null && currentInteractable.CanInteract())
-        {
             ShowPrompt(currentInteractable.GetInteractionPrompt());
-        }
         else
-        {
             HidePrompt();
-        }
     }
 
     private void ShowPrompt(string prompt)
@@ -68,12 +82,9 @@ public class InteractionController : MonoBehaviour
         if (!promptVisible)
         {
             promptVisible = true;
-            if (promptPanel != null)
-                promptPanel.SetActive(true);
+            if (promptPanel != null) promptPanel.SetActive(true);
         }
-
-        if (interactionPromptText != null)
-            interactionPromptText.text = prompt;
+        if (interactionPromptText != null) interactionPromptText.text = prompt;
     }
 
     private void HidePrompt()
@@ -81,8 +92,7 @@ public class InteractionController : MonoBehaviour
         if (promptVisible)
         {
             promptVisible = false;
-            if (promptPanel != null)
-                promptPanel.SetActive(false);
+            if (promptPanel != null) promptPanel.SetActive(false);
         }
     }
 
@@ -91,9 +101,26 @@ public class InteractionController : MonoBehaviour
         if (Keyboard.current != null && Keyboard.current.eKey.wasPressedThisFrame)
         {
             if (currentInteractable != null && currentInteractable.CanInteract())
-            {
                 currentInteractable.Interact(gameObject);
-            }
         }
+    }
+
+    void OnDrawGizmos()
+    {
+        Vector2 facing = Application.isPlaying
+            ? (playerMove != null ? playerMove.facingDirection : Vector2.down)
+            : Vector2.down;
+
+        Vector2 center = Application.isPlaying
+            ? lastBoxCenter
+            : (Vector2)transform.position + facing * distanceInFront;
+
+        Gizmos.color = currentInteractable != null ? Color.green : Color.yellow;
+
+        Matrix4x4 oldMatrix = Gizmos.matrix;
+        float angle = Mathf.Atan2(facing.y, facing.x) * Mathf.Rad2Deg;
+        Gizmos.matrix = Matrix4x4.TRS(center, Quaternion.Euler(0, 0, angle), Vector3.one);
+        Gizmos.DrawWireCube(Vector3.zero, boxSize);
+        Gizmos.matrix = oldMatrix;
     }
 }
