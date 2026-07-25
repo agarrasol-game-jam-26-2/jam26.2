@@ -15,3 +15,7 @@ public class CameraFollow : MonoBehaviour
         transform.position = smoothedPosition;
     }
 }
+
+
+
+ // Script posterior caso queiramos dessenvolver uma camera que segue o jogador //
