@@ -8,6 +8,7 @@ public class PlayerMove : MonoBehaviour
     private Animator anim;
     private bool isInitialized = false;
     public bool hasControl = true;
+    private SpriteRenderer spriteRenderer;
 
     [Header("Movimento")]
     public float moveSpeed = 5f;
@@ -35,6 +36,7 @@ public class PlayerMove : MonoBehaviour
 
     public void Initialize()
     {
+        spriteRenderer = GetComponentInChildren<SpriteRenderer>();
         rb = GetComponent<Rigidbody2D>();
         anim = GetComponentInChildren<Animator>();
 
@@ -78,6 +80,21 @@ public class PlayerMove : MonoBehaviour
         isSprintingIntent = Keyboard.current.leftShiftKey.isPressed;
 
         if(rawInput.magnitude > 0.1f) facingDirection = rawInput;
+
+        // Atualiza o Animator: personagem "de costas" quando olhando pra cima (longe da câmera)
+        if (anim != null)
+        {
+            anim.SetBool("FacingBack", facingDirection.y > 0.1f);
+        }
+
+        // Flip do sprite baseado na direção horizontal
+        if (spriteRenderer != null)
+        {
+            if (Keyboard.current.dKey.isPressed)
+                spriteRenderer.flipX = true;
+            else if (Keyboard.current.aKey.isPressed)
+                spriteRenderer.flipX = false;
+        }
     }
 
     private void FixedUpdate()

@@ -24,14 +24,11 @@ public class LoreDisplayUI : MonoBehaviour
             return;
         }
         Instance = this;
-    }
 
-    void Start()
-    {
         if (lorePanel != null)
             lorePanel.SetActive(false);
         IsOpen = false;
-    }
+    }   
 
     void Update()
     {
